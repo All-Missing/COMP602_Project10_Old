@@ -20,7 +20,7 @@ m_EmbeddedPackageManifests:
 m_LocalPackages:
   m_LocalFileStatus: []
 m_ProjectPath: /Users/missingall/AUT/COMPUTER SCIENCE/COMP602_SoftwareDevelopmentPractice/COMP602_Project10/COMP602-PROJECT10/Packages
-m_EditorVersion: 2022.3.41f1 (0f988161febf)
+m_EditorVersion: 2022.3.43f1 (85497d293fa1)
 m_ResolvedPackages:
 - packageId: com.unity.collab-proxy@2.4.4
   testable: 0
@@ -575,18 +575,18 @@ m_ResolvedPackages:
     recommended: 1.7.6
     deprecated: []
   dependencies:
+  - name: com.unity.modules.audio
+    version: 1.0.0
   - name: com.unity.modules.director
     version: 1.0.0
   - name: com.unity.modules.animation
     version: 1.0.0
-  - name: com.unity.modules.audio
-    version: 1.0.0
   - name: com.unity.modules.particlesystem
     version: 1.0.0
   resolvedDependencies:
-  - name: com.unity.modules.director
-    version: 1.0.0
   - name: com.unity.modules.audio
+    version: 1.0.0
+  - name: com.unity.modules.director
     version: 1.0.0
   - name: com.unity.modules.animation
     version: 1.0.0
@@ -3512,4 +3512,4 @@ m_ResolvedPackages:
   isDeprecated: 0
   deprecationMessage: 
   fingerprint: 
-m_BuiltInPackagesHash: 447c529ded2afe09b824ea0307935623cfbe191d
+m_BuiltInPackagesHash: 463cd7c3d3028ae55c3f682d531a4209aca9b4f3
