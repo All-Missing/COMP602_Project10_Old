@@ -45,10 +45,10 @@ public class PlayerMovement : MonoBehaviour
         {
             StartJumping();
         }
-        else
-        {
-            StopThrusting(); //Stop making mainEngine effect
-        }
+        // else
+        // {
+        //     StopThrusting(); //Stop making mainEngine effect
+        // }
     }
 
     void StopThrusting()
