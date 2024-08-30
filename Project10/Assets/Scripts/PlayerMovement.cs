@@ -4,118 +4,101 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    [SerializeField] float mainThrust = 1000f;
-    [SerializeField] float rotationThrust = 1f;
-    [SerializeField] AudioClip mainEngine;
-    
-    [SerializeField] ParticleSystem mainEngineParticles;
-    [SerializeField] ParticleSystem leftThrusterParticles;
-    [SerializeField] ParticleSystem rightThrusterParticles;
+    [SerializeField] float moveSpeed = 80f;
+    [SerializeField] float sprintMultiplier = 1.5f;
+    [SerializeField] float jumpForce = 40f;
+    [SerializeField] float maxJumpHoldTime = 0.5f; // Adjusted to 0.5 seconds for a higher jump
+    [SerializeField] Transform groundCheckTransform; // Transform to check if the player is grounded
+    [SerializeField] LayerMask groundMask; // Mask to define what is considered ground
+    [SerializeField] float mouseSensitivity = 100f; // Sensitivity for mouse movement
+    [SerializeField] Transform playerCamera; // Reference to the player's camera
 
-    Rigidbody rb;
-    // AudioSource audioSource;
-    bool isAlive;
- 
- 
+    private Rigidbody rb;
+    private bool isGrounded;
+    private float jumpHoldTime = 0f;
+    private float xRotation = 0f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        // audioSource = GetComponent<AudioSource>();
+        Cursor.lockState = CursorLockMode.Locked; // Lock the cursor to the center of the screen
+
+        // Freeze rotation to keep the player upright
+        rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
     }
 
     void Update()
     {
-        BasicMovement();
+        MovePlayer();
+        GroundCheck();
         JumpProcess();
-        // ProcessRotation();
-    }
-    private void BasicMovement()
-    {
-        float moveSpeed = 10f;
-        float xValue = Input.GetAxis("Horizontal") * moveSpeed * Time.deltaTime;
-        float zValue = Input.GetAxis("Vertical") * moveSpeed * Time.deltaTime;
-
-        //set yValue = 0 because I don't object is flying
-        transform.Translate(xValue, 0, zValue);
+        MouseLook();
     }
 
-    void JumpProcess()
+    private void MovePlayer()
     {
-        if (Input.GetKey(KeyCode.Space))
+        float currentSpeed = moveSpeed;
+
+        if (Input.GetKey(KeyCode.LeftShift))
         {
-            StartJumping();
+            currentSpeed *= sprintMultiplier;
         }
-        else
-        {
-            StopThrusting(); //Stop making mainEngine effect
-        }
+
+        float xInput = Input.GetAxis("Horizontal");
+        float zInput = Input.GetAxis("Vertical");
+
+        Vector3 move = (transform.right * xInput + transform.forward * zInput).normalized;
+        Vector3 targetPosition = transform.position + move * currentSpeed * Time.deltaTime;
+
+        rb.MovePosition(targetPosition);
     }
 
-    void StopThrusting()
+    private void GroundCheck()
     {
-        // audioSource.Stop();
-        mainEngineParticles.Stop();
+        // Check if the player is grounded
+        isGrounded = Physics.CheckSphere(groundCheckTransform.position, 0.1f, groundMask);
+        Debug.Log("Is Grounded: " + isGrounded); // Debug log
     }
 
-    void StartJumping()
+    private void JumpProcess()
     {
-        rb.AddRelativeForce(Vector3.up * mainThrust * Time.deltaTime);
-        // if (!audioSource.isPlaying)
-        // {
-        //     audioSource.PlayOneShot(mainEngine);
-        // }
-        // if (!mainEngineParticles.isPlaying) //Check if main engine is start yet
-        // {
-        //     mainEngineParticles.Play(); //Start making mainEngine effect
-        // }
-    }
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            jumpHoldTime = 0f; // Reset jump hold time when jump starts
+            Debug.Log("Jump started");
+        }
 
-    void ProcessRotation()
-    {
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(KeyCode.Space) && isGrounded)
         {
-            RotateLeft();
+            jumpHoldTime += Time.deltaTime;
+
+            if (jumpHoldTime <= maxJumpHoldTime)
+            {
+                // Calculate adjusted jump force
+                float adjustedJumpForce = jumpForce * (1 + (jumpHoldTime / maxJumpHoldTime));
+                Debug.Log("Applying jump force: " + adjustedJumpForce);
+                rb.AddForce(Vector3.up * adjustedJumpForce, ForceMode.Impulse);
+            }
         }
-        else if (Input.GetKey(KeyCode.D))
+
+        if (Input.GetKeyUp(KeyCode.Space))
         {
-            RotateRight();
-        }
-        else
-        {
-            StopRotating();
+            jumpHoldTime = 0f;
         }
     }
 
-    void RotateLeft()
+    private void MouseLook()
     {
-        applyRotation(rotationThrust);
-        if (!rightThrusterParticles.isPlaying) //Check if rightThruster is not rotating
-        {
-            rightThrusterParticles.Play(); //Perform right rotation effect
-        }
-    }
+        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
+        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
-    void RotateRight()
-    {
-        applyRotation(-rotationThrust);
-        if (!leftThrusterParticles.isPlaying) //Check if leftThruster is not rotating
-        {
-            leftThrusterParticles.Play();
-        }
-    }
+        // Rotate player horizontally
+        transform.Rotate(Vector3.up * mouseX);
 
-    private void StopRotating()
-    {
-        rightThrusterParticles.Stop();
-        leftThrusterParticles.Stop();
-    }
+        // Rotate camera vertically and clamp the rotation
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-    void applyRotation(float rotationThisFrame)
-    {
-        rb.freezeRotation = true; // Freezing rotation so we can manually rotate
-        transform.Rotate(Vector3.forward * rotationThisFrame * Time.deltaTime);
-        rb.freezeRotation = false; // unfreezing rotation so physics system can take over
-        
+        playerCamera.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
-
 }
